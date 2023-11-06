@@ -2,6 +2,7 @@ from enum import Enum
 import pygame
 import math
 
+
 class Player(Enum):
     WHITE = 0
     BLACK = 1
@@ -15,67 +16,69 @@ class Hex:
         self.s = s
         self.x = x
         self.y = y
-        self.colour = (0,0,0)
+        self.colour = (0, 0, 0)
         self.points = points
-    
+
     def draw(self, screen):
         pygame.draw.polygon(screen, self.colour, self.points)
 
+
 class HexGrid:
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, hex_size, hex_radius, screen_size):
         self.width = width
         self.height = height
         self.hexagons = {}
-        self.hex_size = 20
-        self.hex_radius = 20
-        self.screen_size = (800, 800)
-
+        self.hex_size = hex_size
+        self.hex_radius = hex_radius
+        self.screen_size = screen_size
 
     def generate_grid(self, N):
         q = -N
         while q <= N:
             r1 = max(-N, -q-N)
             r2 = min(N, -q+N)
-            r=r1
-            while r<=r2:
-                x = self.hex_size * (math.sqrt(3.0)*q + math.sqrt(3.0)/2.0 * r) + self.screen_size[0]/2
+            r = r1
+            while r <= r2:
+                x = self.hex_size * \
+                    (math.sqrt(3.0)*q + math.sqrt(3.0) /
+                     2.0 * r) + self.screen_size[0]/2
                 y = self.hex_size * (3.0/2 * r) + self.screen_size[1]/2
                 points = self.compute_vertices(x, y, self.hex_radius)
-                self.hexagons[(q,r)]=Hex(q,r, -q-r, x, y, points)
-                r+=1
-            q+=1
-    
+                self.hexagons[(q, r)] = Hex(q, r, -q-r, x, y, points)
+                r += 1
+            q += 1
+
     def compute_vertices(self, x, y, radius):
         return [tuple((x+radius*math.cos((((i+1)*2*math.pi)/6)+math.pi/2), (y+radius*math.sin((((i+1)*2*math.pi)/6)+math.pi/2))))for i in range(6)]
-    
+
     def get_neighbours(self, hex):
         neighbours = []
         pairs = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
         for pair in pairs:
-            q, r, s = hex.q + pair[0], hex.r + pair[1], hex.s - pair[0] - pair[1]
+            q, r, s = hex.q + pair[0], hex.r + \
+                pair[1], hex.s - pair[0] - pair[1]
             if (q, r) in self.hexagons:
                 neighbours.append(self.hexagons[(q, r)])
         return neighbours
-    
+
 
 class Game:
     def __init__(self):
-        self.grid = HexGrid(5, 5)
-        self.current_player = Player.WHITE
-        self.grid.generate_grid(1)
         self.screen = None
         self.clock = None
         self.screen_size = (800, 800)
         self.hex_size = 20
         self.hex_radius = 20
+        self.grid = HexGrid(5, 5, self.hex_size, self.hex_radius, self.screen_size)
+        self.current_player = Player.WHITE
+        self.grid.generate_grid(1)
+
 
     def setup(self):
         pygame.init()
         self.screen = pygame.display.set_mode((800, 800))
         self.clock = pygame.time.Clock()
-
-        
 
     def gameloop(self):
         running = True
@@ -89,10 +92,10 @@ class Game:
                     if event.button == 1:
                         mx, my = pygame.mouse.get_pos()
                         self.handle_input(mx, my)
-                
+
                 self.update()
                 self.render()
-        
+
     def switch_player(self):
         if self.current_player == Player.WHITE:
             self.current_player == Player.BLACK
@@ -128,15 +131,15 @@ class Game:
         s = r_s
         return (q, r, s)
 
-
     def update(self):
         pass
 
     def render(self):
-        self.screen.fill((0,255,0))
+        self.screen.fill((0, 255, 0))
         for key in self.grid.hexagons.keys():
             self.grid.hexagons[key].draw(self.screen)
         pygame.display.flip()
+
 
 if __name__ == "__main__":
     game = Game()
